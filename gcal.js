@@ -1,8 +1,6 @@
 var google = require('googleapis');
 var googleAuth = require('google-auth-library');
 
-// If modifying these scopes, delete your previously saved credentials
-// at ~/.credentials/calendar-nodejs-quickstart.json
 var SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
 
 (function (gcal) {
@@ -16,33 +14,33 @@ var SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
         });
     }
 
-    gcal.listEvents = function (calendarName, callback) {
-        var cal = require('./client_secret.json')[calendarName];
+    gcal.listEvents = function (params, callback) {
+        var cal = require('./client_secret.json')[params.agenda];
+
+        console.log(params);
 
         authorize(cal.key
             , function (err, auth) {
                 if (err) {
-                    console.log('Authentication failed because of ', err);
-                    return;
+                    callback('Authentication failed because of ' + err);
+                    return null;
                 }
 
                 var calendar = google.calendar('v3');
 
-                calendar.events.list({
-                    auth: auth,
-                    calendarId: cal.calendarId,
-                    timeMin: (new Date(1990, 01, 01)).toISOString(),
-                    maxResults: 10,
-                    singleEvents: true,
-                    orderBy: 'startTime'
-                }, function (err, response) {
-                    if (err) {
-                        console.log('The API returned an error: ' + err);
-                        return;
-                    }
+                params.auth = auth;
+                params.calendarId = cal.calendarId;
 
-                    callback(response.items);
-                });
+                calendar.events.list(params
+                    , function (err, response) {
+                        if (err) {
+                            callback('The API returned an error: ' + err);
+                            return null;
+                        }
+
+                        callback(null, response);
+                    });
             });
     }
+
 })(module.exports);
