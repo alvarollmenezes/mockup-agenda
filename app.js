@@ -1,29 +1,63 @@
 var gcal = require("./gcal.js");
 var express = require("express");
+var Promise = require("bluebird");
+var crypto = require("crypto");
 
 var app = express();
 
+function gerarCor(nome) {
+    var md5sum = crypto.createHash('md5');
+
+    md5sum.update(nome, 'utf8', 'hex');
+    var cor = md5sum.digest('hex');
+
+    return "#" + cor.substring(0, 6);
+}
+
+function colorirAgenda(agenda) {
+    agenda.color = gerarCor(agenda.summary);
+
+    agenda.items = agenda.items.map(function (evento) {
+        evento.color = agenda.color;
+        return evento;
+    });
+
+    return agenda;
+}
+
 app.get('/events', function (req, res) {
+
     res.set("Content-Type", "application/json");
 
-    gcal.listEvents(req.query
-        , function (err, response) {
-            if (err) {
-                res.send(err);
-                return;
-            }
+    var secrets = require('./agendas.json');
 
-            res.send(response);
-        });
+    var params = req.query;
+    var agendas = JSON.parse(params.agendas);
+
+    var promises = agendas.map(function (agenda) {
+        var cal = secrets[agenda];
+        return gcal.listEvents(cal.key, cal.calendarId, params);
+    });
+
+    Promise.all(promises).then(function (eventos) {
+        eventosComCor = eventos.map(colorirAgenda);
+
+        res.send(eventosComCor);
+
+    }).catch(function (err) {
+        console.log(err);
+        res.send({ erro: err.message });
+    });
 });
 
 app.get('/agendas', function (req, res) {
     res.set("Content-Type", "application/json");
 
-    res.send([
-        { agenda: 'Teste 1', agendaId: '123456' },
-        { agenda: 'Teste 2', agendaId: '654321' },
-    ]);
+    var secrets = require('./agendas.json');
+
+    var agendas = Object.keys(secrets).map(key => { return { nome: key, color: gerarCor(key) } });
+
+    res.send(agendas);
 });
 
 // Launch server

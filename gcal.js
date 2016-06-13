@@ -1,5 +1,6 @@
 var google = require('googleapis');
 var googleAuth = require('google-auth-library');
+var Promise = require("bluebird");
 
 var SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
 
@@ -14,33 +15,29 @@ var SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
         });
     }
 
-    gcal.listEvents = function (params, callback) {
-        var cal = require('./client_secret.json')[params.agenda];
+    gcal.listEvents = function (key, calendarId, params) {
+        return new Promise(function (resolve, reject) {
+            authorize(key
+                , function (err, auth) {
+                    if (err) {
+                        return reject('Authentication failed because of ' + err);
+                    }
 
-        console.log(params);
+                    var calendar = google.calendar('v3');
 
-        authorize(cal.key
-            , function (err, auth) {
-                if (err) {
-                    callback('Authentication failed because of ' + err);
-                    return null;
-                }
+                    params.auth = auth;
+                    params.calendarId = calendarId;
 
-                var calendar = google.calendar('v3');
+                    calendar.events.list(params
+                        , function (err, response) {
+                            if (err) {
+                                return reject('The API returned an error: ' + err);
+                            }
 
-                params.auth = auth;
-                params.calendarId = cal.calendarId;
-
-                calendar.events.list(params
-                    , function (err, response) {
-                        if (err) {
-                            callback('The API returned an error: ' + err);
-                            return null;
-                        }
-
-                        callback(null, response);
-                    });
-            });
+                            return resolve(response);
+                        });
+                });
+        });
     }
 
 })(module.exports);
