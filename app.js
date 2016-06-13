@@ -5,6 +5,12 @@ var crypto = require("crypto");
 
 var app = express();
 
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
 function gerarCor(nome) {
     var md5sum = crypto.createHash('md5');
 
@@ -14,20 +20,29 @@ function gerarCor(nome) {
     return "#" + cor.substring(0, 6);
 }
 
-function colorirAgenda(agenda) {
-    agenda.color = gerarCor(agenda.summary);
+function pluckAgenda(agenda) {
+    var agendaOut = new Object();
 
-    agenda.items = agenda.items.map(function (evento) {
-        evento.color = agenda.color;
-        return evento;
+    agendaOut.color = gerarCor(agenda.summary);
+    agendaOut.summary = agenda.summary;
+    agendaOut.etag = agenda.etag;
+
+    agendaOut.items = agenda.items.map(function (evento) {
+        var eventoOut = new Object();
+        eventoOut.color = agendaOut.color;
+        eventoOut.start = evento.start;
+        eventoOut.end = evento.end;
+        eventoOut.summary = evento.summary;
+        eventoOut.id = evento.id;
+        eventoOut.htmlLink = evento.htmlLink;
+
+        return eventoOut;
     });
 
-    return agenda;
+    return agendaOut;
 }
 
 app.get('/events', function (req, res) {
-
-    res.set("Content-Type", "application/json");
 
     var secrets = require('./agendas.json');
     var params = req.query;
@@ -48,9 +63,9 @@ app.get('/events', function (req, res) {
     });
 
     Promise.all(promises).then(function (eventos) {
-        eventosComCor = eventos.map(colorirAgenda);
+        eventosReady = eventos.map(pluckAgenda);
 
-        res.json(eventosComCor);
+        res.json(eventosReady);
 
     }).catch(function (err) {
         console.log(err);
@@ -59,7 +74,6 @@ app.get('/events', function (req, res) {
 });
 
 app.get('/agendas', function (req, res) {
-    res.set("Content-Type", "application/json");
 
     var secrets = require('./agendas.json');
 
