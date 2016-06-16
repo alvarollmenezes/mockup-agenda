@@ -29,7 +29,7 @@ subApp.get('/events', (req, res) => {
 });
 
 function listarEventos(params, res) {
-    let agendas = obterParamAgenda(params.agenda);
+    let agendas = obterParamAgenda(params.calendars);
 
     let promises = agendas.map(function (agenda) {
         let cal = secrets[agenda];
