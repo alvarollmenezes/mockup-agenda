@@ -1,7 +1,7 @@
-FROM mhart/alpine-node:5.11.1
+FROM mhart/alpine-node:6.2.1
 
 # add project to build
-COPY . /root/mockup-agenda
+COPY src /root/mockup-agenda
 WORKDIR /root/mockup-agenda
 RUN npm install
 

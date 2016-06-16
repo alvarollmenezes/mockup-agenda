@@ -9,7 +9,9 @@
     "google-auth-library": "^0.9.8",
     "googleapis": "^7.1.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "grunt-nodemon": "^0.4.2"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
