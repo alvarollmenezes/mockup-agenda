@@ -3,12 +3,12 @@ let express = require("express");
 let Promise = require("bluebird");
 let crypto = require("crypto");
 
-let secrets = require('./agendas.json');
+let dbCalendars = require('./agendas.json');
 
 let app = express();
 let subApp = express.Router();
 
-subApp.use(function (req, res, next) {
+subApp.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
@@ -16,72 +16,74 @@ subApp.use(function (req, res, next) {
 
 subApp.get('/', (req, res) => {
 
-    let agendas = Object.keys(secrets).map(key => { return { nome: key, color: gerarCor(key) } });
+    let calendars = Object.keys(dbCalendars).map(key => { return { name: key, color: generateColor(key) } });
 
-    return res.json(agendas);
+    return res.json(calendars);
 });
 
 subApp.get('/events', (req, res) => {
 
     let params = req.query;
 
-    return listarEventos(params, res);
+    return listEvents(params, res);
 });
 
-function listarEventos(params, res) {
-    let agendas = obterParamAgenda(params.calendars);
+function listEvents(params, res) {
+    let calendars = getCalendarsParameter(params.calendars);
 
-    let promises = agendas.map(function (agenda) {
-        let cal = secrets[agenda];
+    let promises = calendars.map(calendar => {
+
+        let cal = dbCalendars[calendar];
         return gcal.listEvents(cal.key, cal.calendarId, params);
     });
 
-    Promise.all(promises).then(function (eventos) {
-        eventosReady = eventos.map(tratarAgenda);
+    Promise.all(promises).then(events => {
 
-        return res.json(eventosReady);
+        eventsReady = events.map(normalizeCalendar);
+        return res.json(eventsReady);
 
-    }).catch(function (err) {
+    }).catch(err => {
+
         console.log(err);
         return res.send({ erro: err.message });
     });
 }
 
-function obterParamAgenda(pAgenda) {
-    if (!Array.isArray(pAgenda)) {
-        agendas = [pAgenda];
+function getCalendarsParameter(calendarsParam) {
+    if (!Array.isArray(calendarsParam)) {
+        calendars = [calendarsParam];
     }
     else {
-        agendas = pAgenda;
+        calendars = calendarsParam;
     }
 
     // Remove duplicates
-    return Array.from(new Set(agendas));
+    return Array.from(new Set(calendars));
 }
 
-function tratarAgenda(agenda) {
-    let agendaOut = new Object();
+function normalizeCalendar(calendar) {
+    let normalizedCalendar = new Object();
 
-    agendaOut.color = gerarCor(agenda.summary);
-    agendaOut.summary = agenda.summary;
-    agendaOut.etag = agenda.etag;
+    normalizedCalendar.color = generateColor(calendar.summary);
+    normalizedCalendar.summary = calendar.summary;
+    normalizedCalendar.etag = calendar.etag;
 
-    agendaOut.items = agenda.items.map(function (evento) {
-        let eventoOut = new Object();
-        eventoOut.color = agendaOut.color;
-        eventoOut.start = evento.start;
-        eventoOut.end = evento.end;
-        eventoOut.summary = evento.summary;
-        eventoOut.id = evento.id;
-        eventoOut.htmlLink = evento.htmlLink;
+    normalizedCalendar.items = calendar.items.map(event => {
+        let normalizedEvent = new Object();
+        normalizedEvent.color = normalizedCalendar.color;
+        normalizedEvent.start = event.start;
+        normalizedEvent.end = event.end;
+        normalizedEvent.summary = event.summary;
+        normalizedEvent.id = event.id;
+        normalizedEvent.htmlLink = event.htmlLink;
 
-        return eventoOut;
+        return normalizedEvent;
     });
 
-    return agendaOut;
+    return normalizedCalendar;
 }
 
-function gerarCor(nome) {
+function generateColor(nome) {
     let md5sum = crypto.createHash('md5');
 
     md5sum.update(nome, 'utf8', 'hex');
@@ -90,7 +92,8 @@ function gerarCor(nome) {
     return "#" + cor.substring(0, 6);
 }
 
-app.use(process.env.REQUEST_PATH, subApp);
+let path = process.env.REQUEST_PATH ? process.env.REQUEST_PATH : '';
+app.use(path, subApp);
 
 // Launch server
 app.listen(4242);
