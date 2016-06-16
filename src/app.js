@@ -19,14 +19,14 @@ subApp.get('/', function (req, res) {
     let params = req.query;
 
     if (params.agenda) {
-        listarEventos(params);
+        listarEventos(params, res);
     }
     else {
-        listarAgendas();
+        listarAgendas(res);
     }
 });
 
-function listarEventos(params) {
+function listarEventos(params, res) {
     let agendas = obterParamAgenda(params.agenda);
 
     let promises = agendas.map(function (agenda) {
@@ -45,7 +45,7 @@ function listarEventos(params) {
     });
 }
 
-function listarAgendas() {
+function listarAgendas(res) {
     let agendas = Object.keys(secrets).map(key => { return { nome: key, color: gerarCor(key) } });
 
     res.json(agendas);
