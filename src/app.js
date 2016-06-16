@@ -14,16 +14,18 @@ subApp.use(function (req, res, next) {
     next();
 });
 
-subApp.get('/', function (req, res) {
+subApp.get('/', (req, res) => {
+
+    let agendas = Object.keys(secrets).map(key => { return { nome: key, color: gerarCor(key) } });
+
+    return res.json(agendas);
+});
+
+subApp.get('/events', (req, res) => {
 
     let params = req.query;
 
-    if (params.agenda) {
-        listarEventos(params, res);
-    }
-    else {
-        listarAgendas(res);
-    }
+    return listarEventos(params, res);
 });
 
 function listarEventos(params, res) {
@@ -37,18 +39,12 @@ function listarEventos(params, res) {
     Promise.all(promises).then(function (eventos) {
         eventosReady = eventos.map(tratarAgenda);
 
-        res.json(eventosReady);
+        return res.json(eventosReady);
 
     }).catch(function (err) {
         console.log(err);
-        res.send({ erro: err.message });
+        return res.send({ erro: err.message });
     });
-}
-
-function listarAgendas(res) {
-    let agendas = Object.keys(secrets).map(key => { return { nome: key, color: gerarCor(key) } });
-
-    res.json(agendas);
 }
 
 function obterParamAgenda(pAgenda) {
