@@ -1,12 +1,15 @@
-let gcal = require("./gcal.js");
-let express = require("express");
-let Promise = require("bluebird");
-let crypto = require("crypto");
+const gcal = require("./gcal.js");
+const express = require("express");
+const compress = require('compression');
+const Promise = require("bluebird");
+const crypto = require("crypto");
 
 let dbCalendars = require('./agendas.json');
 
 let app = express();
-let subApp = express.Router();
+app.use(compress());
+
+let subApp = express();
 
 subApp.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
@@ -16,7 +19,9 @@ subApp.use((req, res, next) => {
 
 subApp.get('/', (req, res) => {
 
-    let calendars = Object.keys(dbCalendars).map(key => { return { name: key, color: generateColor(key) } });
+    let calendars = Object.keys(dbCalendars)
+        .map(key => { return { name: key, color: generateColor(key) } })
+        .sort();
 
     return res.json(calendars);
 });
@@ -50,7 +55,10 @@ function listEvents(params, res) {
 }
 
 function getCalendarsParameter(calendarsParam) {
-    if (!Array.isArray(calendarsParam)) {
+    if (!calendarsParam) {
+        calendars = [];
+    }
+    else if (!Array.isArray(calendarsParam)) {
         calendars = [calendarsParam];
     }
     else {
@@ -92,7 +100,7 @@ function generateColor(nome) {
     return "#" + cor.substring(0, 6);
 }
 
-let path = process.env.REQUEST_PATH ? process.env.REQUEST_PATH : '';
+let path = process.env.REQUEST_PATH || '';
 app.use(path, subApp);
 
 // Launch server
