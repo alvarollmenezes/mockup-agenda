@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "bluebird": "^3.4.0",
+    "compression": "^1.6.2",
     "express": "^4.13.4",
     "google-auth-library": "^0.9.8",
     "googleapis": "^7.1.0"
