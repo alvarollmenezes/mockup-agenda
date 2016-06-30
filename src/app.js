@@ -3,8 +3,10 @@ const express = require("express");
 const compress = require('compression');
 const Promise = require("bluebird");
 const crypto = require("crypto");
+const redis = require('redis');
 
 let dbCalendars = require('./agendas.json');
+const client = redis.createClient(6379, process.env.REDIS || "10.243.9.4/redis");
 
 let app = express();
 app.use(compress());
@@ -42,15 +44,17 @@ function listEvents(params, res) {
         return gcal.listEvents(cal.key, cal.calendarId, params);
     });
 
-    Promise.all(promises).then(events => {
+    Promise.all(promises)
+    .then(events => {
 
         eventsReady = events.map(normalizeCalendar);
         return res.json(eventsReady);
 
-    }).catch(err => {
+    })
+    .catch(err => {
 
         console.log(err);
-        return res.send({ erro: err.message });
+        return res.send(err);
     });
 }
 
