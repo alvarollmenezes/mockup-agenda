@@ -4,6 +4,7 @@ const compress = require('compression');
 const Promise = require("bluebird");
 const crypto = require("crypto");
 const redis = require('redis');
+const apicache = require('apicache').options({ debug: false }).middleware;
 
 let dbCalendars = require('./agendas.json');
 const client = redis.createClient(6379, process.env.REDIS || "10.243.9.4/redis");
@@ -28,7 +29,7 @@ subApp.get('/', (req, res) => {
     return res.json(calendars);
 });
 
-subApp.get('/events', (req, res) => {
+subApp.get('/events', apicache('10 minutes'), (req, res) => {
 
     let params = req.query;
 
