@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "apicache": "0.0.14",
     "bluebird": "^3.4.0",
     "compression": "^1.6.2",
     "express": "^4.13.4",
