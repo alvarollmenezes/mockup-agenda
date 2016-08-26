@@ -3,11 +3,9 @@ const express = require("express");
 const compress = require('compression');
 const Promise = require("bluebird");
 const crypto = require("crypto");
-const redis = require('redis');
 const apicache = require('apicache').options({ debug: false }).middleware;
 
 let dbCalendars = require('./agendas.json');
-const client = redis.createClient(6379, process.env.REDIS || "10.243.9.4/redis");
 
 let app = express();
 app.use(compress());
@@ -29,14 +27,32 @@ subApp.get('/', (req, res) => {
     return res.json(calendars);
 });
 
-subApp.get('/events', apicache('10 minutes'), (req, res) => {
+subApp.get('/events', apicache('60 minutes'), (req, res) => {
 
     let params = req.query;
 
-    return listEvents(params, res);
+    return listEvents(params, res, normalizeCalendar)
+    .then(events => res.json(events));
 });
 
-function listEvents(params, res) {
+subApp.get('/events/goves', apicache('60 minutes'), (req, res) => {
+
+    let params = req.query;
+
+    return listEvents(params, res, normalizeCalendarGovES)
+    .then(events => {
+        events = events.reduce((previous, current) => {
+            return previous.concat(current);
+        }, [])
+        .sort((a,b) => {
+            return a.created.localeCompare(b.created);
+        });
+        
+        res.json(events);
+    });
+});
+
+function listEvents(params, res, normalization) {
     let calendars = getCalendarsParameter(params.calendars);
 
     let promises = calendars.map(calendar => {
@@ -45,12 +61,10 @@ function listEvents(params, res) {
         return gcal.listEvents(cal.key, cal.calendarId, params);
     });
 
-    Promise.all(promises)
+    return Promise.all(promises)
     .then(events => {
 
-        eventsReady = events.map(normalizeCalendar);
-        return res.json(eventsReady);
-
+        return events.map(normalization);
     })
     .catch(err => {
 
@@ -72,6 +86,10 @@ function getCalendarsParameter(calendarsParam) {
 
     // Remove duplicates
     return Array.from(new Set(calendars));
+}
+
+function normalizeCalendarGovES(calendar) {
+    return calendar.items;
 }
 
 function normalizeCalendar(calendar) {
