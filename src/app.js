@@ -4,6 +4,7 @@ const compress = require('compression');
 const Promise = require("bluebird");
 const crypto = require("crypto");
 const apicache = require('apicache').options({ debug: false }).middleware;
+const cors = require('cors'); 
 
 let dbCalendars = require('./agendas.json');
 
@@ -12,11 +13,7 @@ app.use(compress());
 
 let subApp = express();
 
-subApp.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-});
+subApp.use(cors());
 
 subApp.get('/', (req, res) => {
 
@@ -38,6 +35,8 @@ subApp.get('/events', apicache('60 minutes'), (req, res) => {
 subApp.get('/events/goves', apicache('60 minutes'), (req, res) => {
 
     let params = req.query;
+    const maxResults = params.maxResults;
+    req.maxResults = null; //TODO: multiplicar pelo numero de agendas
 
     return listEvents(params, res, normalizeCalendarGovES)
     .then(events => {
@@ -45,8 +44,14 @@ subApp.get('/events/goves', apicache('60 minutes'), (req, res) => {
             return previous.concat(current);
         }, [])
         .sort((a,b) => {
-            return a.created.localeCompare(b.created);
-        });
+            const aStart = a.start.dateTime || a.start.date;
+            const aEnd = a.end.dateTime || a.end.date;
+            const bStart = b.start.dateTime || b.start.date;
+            const bEnd = b.end.dateTime || b.end.date;
+
+            return aStart.localeCompare(bStart) || aEnd.localeCompare(bEnd);
+        })
+        .slice(0, maxResults);
         
         res.json(events);
     });
