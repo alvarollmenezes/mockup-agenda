@@ -1,41 +1,23 @@
-var google = require('googleapis');
-var googleAuth = require('google-auth-library');
-var Promise = require("bluebird");
-
-var SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
+const google = require('googleapis');
+const Promise = require('bluebird');
+const config = require('./config.js');
 
 (function (gcal) {
 
-    function authorize(key, callback) {
-        var auth = new googleAuth();
-        var jwtClient = new auth.JWT(key.client_email, null, key.private_key, SCOPES, null);
+    gcal.listEvents = function ( calendarId, params ) {
+        const calendar = google.calendar( 'v3' );
 
-        jwtClient.authorize(function (err, tokens) {
-            callback(err, jwtClient);
-        });
-    }
+        params.auth = config.apiKey;
+        params.calendarId = calendarId;
 
-    gcal.listEvents = function (key, calendarId, params) {
-        return new Promise(function (resolve, reject) {
-            authorize(key
-                , function (err, auth) {
+        return new Promise( ( resolve, reject ) => {
+            calendar.events.list( params,
+                function ( err, response ) {
                     if (err) {
-                        return reject('Authentication failed because of ' + err);
+                        return reject( 'The API returned an error: ' + err );
                     }
 
-                    var calendar = google.calendar('v3');
-
-                    params.auth = auth;
-                    params.calendarId = calendarId;
-
-                    calendar.events.list(params
-                        , function (err, response) {
-                            if (err) {
-                                return reject('The API returned an error: ' + err);
-                            }
-
-                            return resolve(response);
-                        });
+                    return resolve( response );
                 });
         });
     }

@@ -40,8 +40,4 @@ jspm_packages
 *.tmp
 
 # Google api client_secret (service key)
-*agendas.json
-
-# VS Code
-jsconfig.json
-.vscode
+key.json

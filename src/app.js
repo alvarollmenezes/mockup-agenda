@@ -1,12 +1,12 @@
+const config = require("./config.js");
 const gcal = require("./gcal.js");
 const express = require("express");
 const compress = require('compression');
 const Promise = require("bluebird");
 const crypto = require("crypto");
 const apicache = require('apicache').options({ debug: false }).middleware;
-const cors = require('cors'); 
-
-let dbCalendars = require('./agendas.json');
+const cors = require('cors');
+const dbCalendars = require('./agendas.json');
 
 let app = express();
 app.use(compress());
@@ -18,7 +18,7 @@ subApp.use(cors());
 subApp.get('/', (req, res) => {
 
     let calendars = Object.keys(dbCalendars)
-        .map(key => { return { name: key, color: generateColor(key) } })
+        .map( (k, i) => { return { name: k, color: config.colors[i] } })
         .sort();
 
     return res.json(calendars);
@@ -29,7 +29,9 @@ subApp.get('/events', apicache('60 minutes'), (req, res) => {
     let params = req.query;
 
     return listEvents(params, res, normalizeCalendar)
-    .then(events => res.json(events));
+    .then(events => {
+        return res.json(events)
+    });
 });
 
 subApp.get('/events/goves', apicache('60 minutes'), (req, res) => {
@@ -52,7 +54,7 @@ subApp.get('/events/goves', apicache('60 minutes'), (req, res) => {
             return aStart.localeCompare(bStart) || aEnd.localeCompare(bEnd);
         })
         .slice(0, maxResults);
-        
+
         res.json(events);
     });
 });
@@ -63,7 +65,7 @@ function listEvents(params, res, normalization) {
     let promises = calendars.map(calendar => {
 
         let cal = dbCalendars[calendar];
-        return gcal.listEvents(cal.key, cal.calendarId, params);
+        return gcal.listEvents(cal.calendarId, params);
     });
 
     return Promise.all(promises)
@@ -97,10 +99,10 @@ function normalizeCalendarGovES(calendar) {
     return calendar.items;
 }
 
-function normalizeCalendar(calendar) {
+function normalizeCalendar(calendar, index) {
     let normalizedCalendar = new Object();
 
-    normalizedCalendar.color = generateColor(calendar.summary);
+    normalizedCalendar.color = config.colors[index];
     normalizedCalendar.summary = calendar.summary;
     normalizedCalendar.etag = calendar.etag;
 
@@ -133,3 +135,5 @@ app.use(path, subApp);
 
 // Launch server
 app.listen(4242);
+
+console.log( 'Listening on port 4242' );
