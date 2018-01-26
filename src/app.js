@@ -1,19 +1,21 @@
 const config = require("./config.js");
 const gcal = require("./gcal.js");
 const express = require("express");
-const compress = require('compression');
 const Promise = require("bluebird");
 const crypto = require("crypto");
 const apicache = require('apicache').options({ debug: false }).middleware;
-const cors = require('cors');
 const dbCalendars = require('./agendas.json');
+const apiMiddleware = require( 'node-mw-api-prodest' ).middleware;
 
 let app = express();
-app.use(compress());
 
 let subApp = express();
 
-subApp.use(cors());
+app.use( apiMiddleware( {
+    compress: true,
+    cors: true,
+    log: true
+} ) );
 
 subApp.get('/', (req, res) => {
 
