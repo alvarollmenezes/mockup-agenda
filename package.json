@@ -1,8 +1,8 @@
 {
-  "name": "mockup-agenda",
-  "version": "1.0.0",
+  "name": "api-calendar",
+  "version": "2.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "dependencies": {
     "apicache": "0.0.14",
     "bluebird": "^3.4.0",
@@ -11,6 +11,9 @@
     "express": "^4.13.4",
     "google-auth-library": "^0.9.9",
     "googleapis": "^14.2.0",
+    "lodash": "^4.17.10",
+    "moment": "^2.22.2",
+    "morgan": "^1.9.0",
     "node-mw-api-prodest": "^1.6.0"
   },
   "devDependencies": {
@@ -21,13 +24,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alvarollmenezes/mockup-agenda.git"
+    "url": "git+https://github.com/prodest/api-calendar.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/alvarollmenezes/mockup-agenda/issues"
+    "url": "https://github.com/prodest/api-calendar/issues"
   },
-  "homepage": "https://github.com/alvarollmenezes/mockup-agenda#readme"
+  "homepage": "https://github.com/prodest/api-calendar#readme"
 }

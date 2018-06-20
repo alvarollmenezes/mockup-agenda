@@ -1,10 +1,12 @@
-FROM mhart/alpine-node:6.2.1
+FROM node:8-alpine
 
 # add project to build
-COPY src /root/mockup-agenda
-WORKDIR /root/mockup-agenda
+COPY src /root/api-calendar
+WORKDIR /root/api-calendar
 RUN npm install
 
 EXPOSE 4242
+
+USER node
 
 CMD ["node", "app.js"]
