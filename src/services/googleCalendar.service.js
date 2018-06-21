@@ -1,28 +1,19 @@
-const google = require( 'googleapis' );
-const Promise = require( 'bluebird' );
-const calendarConfig = require( '../config/calendar.js' );
+const { google } = require("googleapis");
+const calendarConfig = require("../config/calendar.js");
 
 module.exports = () => {
+  let gCalService = new Object();
 
-    let gCalService = new Object();
+  gCalService.listEvents = (calendarId) => {
+    const calendar = google.calendar({ version: "v3" });
 
-    gCalService.listEvents = ( calendarId, params ) => {
-        const calendar = google.calendar( 'v3' );
+    const options = {
+        auth: calendarConfig.apiKey,
+        calendarId: calendarId
+    };
 
-        params.auth = calendarConfig.apiKey;
-        params.calendarId = calendarId;
+    return calendar.events.list(options);
+  };
 
-        return new Promise( ( resolve, reject ) => {
-            calendar.events.list( params,
-                ( err, response ) => {
-                    if ( err ) {
-                        return reject( 'The API returned an error: ' + err );
-                    }
-
-                    return resolve( response );
-                } );
-        } );
-    }
-
-    return gCalService;
+  return gCalService;
 };
