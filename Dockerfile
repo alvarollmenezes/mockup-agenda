@@ -1,11 +1,13 @@
 FROM node:8-alpine
 
 # add project to build
-COPY . /root/api-calendar
-WORKDIR /root/api-calendar
+COPY . /var/www
+WORKDIR /var/www
 RUN npm install
 
-EXPOSE 4242
+ENV PORT 80
+
+EXPOSE 80
 
 USER node
 
