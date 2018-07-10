@@ -31,7 +31,7 @@ AppRoutes.forEach( route => {
 } );
 
 baseRouter.get( '/ping', ( req, res ) => {
-    res.send( { 'result': 'version 0.0.1' } )
+    res.send( { 'result': 'version 1.1.2' } )
 } );
 
 app.use( ( err, req, res, next ) => {
@@ -52,4 +52,4 @@ app.use( ( err, req, res, next ) => {
 // Launch server
 app.listen( config.port );
 
-console.log( 'Listening on port 4242' );
+console.log( 'Listening on port ' + config.port );
