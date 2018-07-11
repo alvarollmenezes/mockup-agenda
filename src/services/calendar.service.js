@@ -3,22 +3,8 @@ const crypto = require("crypto");
 const _ = require("lodash");
 const calendarConfig = require("../config/calendar.js");
 const gcal = require("./googleCalendar.service.js")();
-// const dbCalendars = require("./../agendas.json");
+const dbCalendars = require("../agendas.json");
 
-const dbCalendars = {
-  INCAPER: {
-    calendarId: "gvej76kic97hmtpgchffkpipsk@group.calendar.google.com"
-  },
-  SECULT: {
-    calendarId: "9f4267kc0bhpra33jupfo5bb90@group.calendar.google.com"
-  },
-  SEAG: {
-    calendarId: "e0tjr6pjfqfdg30okaa2n64jcg@group.calendar.google.com"
-  },
-  SETUR: {
-    calendarId: "4vk5683aiiphrdbjfe5afp9l88@group.calendar.google.com"
-  }
-};;
 
 module.exports = () => {
   listEvents = (params, normalizer) => {
