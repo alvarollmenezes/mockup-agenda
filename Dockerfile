@@ -5,9 +5,7 @@ COPY . /var/www
 WORKDIR /var/www
 RUN npm install
 
-ENV PORT 80
-
-EXPOSE 80
+EXPOSE 4242
 
 USER node
 
