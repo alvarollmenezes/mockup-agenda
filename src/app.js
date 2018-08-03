@@ -31,7 +31,7 @@ AppRoutes.forEach( route => {
 } );
 
 baseRouter.get( '/ping', ( req, res ) => {
-    res.send( { 'result': 'version 1.1.2' } )
+    res.send( { 'result': 'version 2.0.0' } )
 } );
 
 app.use( ( err, req, res, next ) => {
